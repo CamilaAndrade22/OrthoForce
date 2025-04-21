@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
+// Ponto de entrada da aplicação
 void main() {
   runApp(MyApp());
 }
 
+// Widget principal da aplicação
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -34,12 +36,12 @@ class MyApp extends StatelessWidget {
           fillColor: Colors.white,
         ),
       ),
-      home: SplashScreen(),
+      home: SplashScreen(), // Primeira tela exibida
     );
   }
 }
 
-// Splash screen
+// Tela de Splash (tela inicial de carregamento)
 class SplashScreen extends StatefulWidget {
   @override
   _SplashScreenState createState() => _SplashScreenState();
@@ -49,7 +51,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 10), () {
+    // Navega para a tela principal após 07 segundos
+    Future.delayed(Duration(seconds: 7), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
@@ -62,18 +65,18 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 172, 226, 253),
       body: Center(
-        child: Image.asset('assets/images/logo-ung.png', height: 230),
+        child: Image.asset('assets/images/logo-ung.png', height: 230), // Logo na tela
       ),
     );
   }
 }
 
-// Tela inicial
+// Tela inicial principal
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GradientContainer(
+      body: GradientContainer( // Container com fundo gradiente
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
@@ -86,6 +89,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 40),
                 ElevatedButton(
+                  // Botão para iniciar o app
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -110,7 +114,7 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// Seleção do tipo de fio
+// Tela de seleção do tipo de fio
 class WireTypeSelectionScreen extends StatefulWidget {
   @override
   _WireTypeSelectionScreenState createState() => _WireTypeSelectionScreenState();
@@ -125,7 +129,7 @@ class _WireTypeSelectionScreenState extends State<WireTypeSelectionScreen> {
     'GM 17x25',
   ];
 
-  String? _selectedWireType = 'Selecione um tipo de fio';
+  String? _selectedWireType = 'Selecione um tipo de fio'; // Tipo de fio selecionado
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +144,7 @@ class _WireTypeSelectionScreenState extends State<WireTypeSelectionScreen> {
               Text('Escolha o tipo de fio:', style: Theme.of(context).textTheme.titleLarge),
               SizedBox(height: 20),
               DropdownButtonFormField<String>(
+                // Lista de tipos de fio
                 value: _selectedWireType,
                 decoration: InputDecoration(labelText: 'Tipo de fio'),
                 onChanged: (value) {
@@ -153,6 +158,7 @@ class _WireTypeSelectionScreenState extends State<WireTypeSelectionScreen> {
               ),
               SizedBox(height: 30),
               ElevatedButton(
+                // Avança apenas se um tipo de fio for selecionado
                 onPressed: _selectedWireType != null &&
                         _selectedWireType != 'Selecione um tipo de fio'
                     ? () {
@@ -176,20 +182,22 @@ class _WireTypeSelectionScreenState extends State<WireTypeSelectionScreen> {
   }
 }
 
-// Seleção de espessura e cálculo de força
+// Tela de seleção de espessura do fio e cálculo
 class WireThicknessSelectionScreen extends StatefulWidget {
-  final String selectedWireType;
+  final String selectedWireType; // Tipo de fio selecionado vindo da tela anterior
 
   WireThicknessSelectionScreen({required this.selectedWireType});
 
   @override
-  _WireThicknessSelectionScreenState createState() =>
-      _WireThicknessSelectionScreenState();
+  _WireThicknessSelectionScreenState createState() => _WireThicknessSelectionScreenState();
 }
 
 class _WireThicknessSelectionScreenState extends State<WireThicknessSelectionScreen> {
-  String _selectedThickness = 'Selecione uma espessura';
+  String _selectedThickness = 'Selecione uma espessura'; // Espessura selecionada
+  bool _usarValorPersonalizado = false; // Flag para usar valor manual
+  final TextEditingController _espessuraController = TextEditingController(); // Controller para valor manual
 
+  // Lista de opções pré-definidas de espessura
   final List<String> thicknessOptions = [
     'Selecione uma espessura',
     '0.1', '0.2', '0.3', '0.4', '0.5',
@@ -198,6 +206,7 @@ class _WireThicknessSelectionScreenState extends State<WireThicknessSelectionScr
     '1.6', '1.7', '1.8', '1.9', '2.0',
   ];
 
+  // Parâmetros de cálculo para cada tipo de fio
   final Map<String, Map<String, double>> parametrosFios = {
     'Aço 17x25':   {'y0': -1.07,   'plateau': 27.73, 'k': 1.235},
     'GM 17x25':    {'y0': -0.3932, 'plateau': 14.97, 'k': 0.6472},
@@ -205,6 +214,7 @@ class _WireThicknessSelectionScreenState extends State<WireThicknessSelectionScr
     'NiTi 17x25':  {'y0': -0.2214, 'plateau': 4.22,  'k': 2.576},
   };
 
+  // Função que calcula a força estimada com base nos parâmetros e espessura
   double calcularForca(double y0, double plateau, double k, double x) {
     return (y0 - plateau) * exp(-k * x) + plateau;
   }
@@ -221,45 +231,82 @@ class _WireThicknessSelectionScreenState extends State<WireThicknessSelectionScr
             children: [
               Text('Escolha a espessura do fio:', style: Theme.of(context).textTheme.titleLarge),
               SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                value: _selectedThickness,
-                decoration: InputDecoration(labelText: 'Espessura (mm)'),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedThickness = value!;
-                  });
-                },
-                items: thicknessOptions.map((thickness) {
-                  return DropdownMenuItem(
-                    value: thickness,
-                    child: Text(thickness == 'Selecione uma espessura' ? thickness : '$thickness mm'),
-                  );
-                }).toList(),
+
+              // Dropdown para espessura padrão
+              if (!_usarValorPersonalizado)
+                DropdownButtonFormField<String>(
+                  value: _selectedThickness,
+                  decoration: InputDecoration(labelText: 'Espessura (mm)'),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedThickness = value!;
+                    });
+                  },
+                  items: thicknessOptions.map((thickness) {
+                    return DropdownMenuItem(
+                      value: thickness,
+                      child: Text(thickness == 'Selecione uma espessura' ? thickness : '$thickness mm'),
+                    );
+                  }).toList(),
+                ),
+
+              // Campo para espessura personalizada
+              if (_usarValorPersonalizado)
+                TextFormField(
+                  controller: _espessuraController,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(labelText: 'Digite a espessura (mm)'),
+                ),
+
+              // Checkbox para alternar entre as opções
+              Row(
+                children: [
+                  Checkbox(
+                    value: _usarValorPersonalizado,
+                    onChanged: (value) {
+                      setState(() {
+                        _usarValorPersonalizado = value!;
+                      });
+                    },
+                  ),
+                  Text('Inserir valor personalizado'),
+                ],
               ),
+
               SizedBox(height: 30),
               ElevatedButton(
-                onPressed: _selectedThickness != 'Selecione uma espessura'
-                    ? () {
-                        double x = double.parse(_selectedThickness);
-                        var params = parametrosFios[widget.selectedWireType]!;
-                        double resultado = calcularForca(
-                          params['y0']!,
-                          params['plateau']!,
-                          params['k']!,
-                          x,
-                        );
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ResultScreen(
-                              tipoFio: widget.selectedWireType,
-                              espessura: _selectedThickness,
-                              forca: resultado,
-                            ),
-                          ),
-                        );
-                      }
-                    : null,
+                // Botão para calcular a força estimada
+                onPressed: () {
+                  double? x;
+
+                  if (_usarValorPersonalizado) {
+                    x = double.tryParse(_espessuraController.text);
+                    if (x == null || x <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Insira um valor válido para espessura.')),
+                      );
+                      return;
+                    }
+                  } else if (_selectedThickness != 'Selecione uma espessura') {
+                    x = double.parse(_selectedThickness);
+                  }
+
+                  if (x != null) {
+                    var params = parametrosFios[widget.selectedWireType]!;
+                    double resultado = calcularForca(params['y0']!, params['plateau']!, params['k']!, x);
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ResultScreen(
+                          tipoFio: widget.selectedWireType,
+                          espessura: x!.toStringAsFixed(2),
+                          forca: resultado,
+                        ),
+                      ),
+                    );
+                  }
+                },
                 child: Text('Ver Recomendação'),
               ),
             ],
@@ -270,7 +317,7 @@ class _WireThicknessSelectionScreenState extends State<WireThicknessSelectionScr
   }
 }
 
-// Tela de resultado
+// Tela que mostra o resultado final do cálculo
 class ResultScreen extends StatelessWidget {
   final String tipoFio;
   final String espessura;
@@ -295,59 +342,47 @@ class ResultScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Fio selecionado:',
-                      style: TextStyle(fontSize: 18),
-                    ),
+                    Text('Fio selecionado:', style: TextStyle(fontSize: 18)),
                     SizedBox(height: 8),
-                    Text(
-                      '$tipoFio - $espessura mm',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
+                    Text('$tipoFio - $espessura MM',
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                     SizedBox(height: 24),
-                    Text(
-                      'Força estimada:',
-                      style: TextStyle(fontSize: 18),
-                    ),
+                    Text('Força estimada:', style: TextStyle(fontSize: 18)),
                     SizedBox(height: 8),
-                    Text(
-                      '${forca.toStringAsFixed(2)} gf',
-                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50)),
-                    ),
+                    Text('${forca.toStringAsFixed(2)} GF',
+                        style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50))),
                     SizedBox(height: 40),
                     ElevatedButton(
-       onPressed: () {
-       Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => WireTypeSelectionScreen()),
-     );
-   },
-  style: ElevatedButton.styleFrom(
-    minimumSize: Size(200, 50), // tamanho mínimo do botão
-  ),
-  child: FittedBox(
-    fit: BoxFit.scaleDown,
-    child: Text(
-      'CALCULAR NOVAMENTE',
-      style: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-  ),
-),
-  ],
-   ),
-    ),
-   ),
-    ),
-      ),
+                      onPressed: () {
+                        // Botão para voltar e calcular novamente
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => WireTypeSelectionScreen()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(200, 50),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'CALCULAR NOVAMENTE',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-// Container com gradiente
+// Widget que cria um fundo gradiente reutilizável
 class GradientContainer extends StatelessWidget {
   final Widget child;
 
@@ -371,3 +406,4 @@ class GradientContainer extends StatelessWidget {
     );
   }
 }
+
